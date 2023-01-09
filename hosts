@@ -1,5 +1,2 @@
-# remote server alias
-testserver ansible_host=127.0.0.1 ansible_port=2222
-
-# ubuntu 20.04 default python version
-ansible_python_interpreter=/usr/bin/python3
+[webservers]
+testserver ansible_host=127.0.0.1 ansible_port=2222 ansible_python_interpreter=/usr/bin/python3
