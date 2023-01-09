@@ -1,0 +1,31 @@
+- name: Configure webserver with nginx # play
+  hosts: webservers # host 집합
+  become: true # root user로 접근
+  tasks: # task 집합
+    - name: Install nginx # task 명
+      ansible.builtin.apt: # module
+        name: nginx # option : name
+        update_cache: true # option : update_cache (= apt-get update)
+
+    - name: Copy nginx config file
+      ansible.builtin.copy:
+        src: files/nginx.conf
+        dest: /etc/nginx/sites-available/default
+        mode: 0400
+
+    - name: Enable configuration
+      ansible.builtin.file: # file, symbolic link, directory 속성 설정
+        dest: /etc/nginx/sites-enabled/default
+        src: /etc/nginx/sites-available/default
+        state: link
+
+    - name: Copy index.html
+      ansible.builtin.template: # template에서 file 생성 후 host에 복사
+        src: templates/index.html.j2
+        dest: /usr/share/nginx/html/index.html
+        mode: 0644
+
+    - name: Restart nginx
+      ansible.builtin.service: # service start, stop, restart
+        name: nginx
+        state: restarted

@@ -1,0 +1,61 @@
+- name: Configure webserver with nginx and tls
+  hosts: webservers
+  become: true
+  vars:
+    key_file: /etc/nginx/ssl/nginx.key
+    cert_file: /etc/nginx/ssl/nginx.crt
+    conf_file: /etc/nginx/sites-available/default
+    server_name: localhost
+  tasks:
+    - name: Install nginx
+      ansible.builtin.apt:
+        name: nginx
+        update_cache: true
+        cache_valid_time: 3600
+
+    - name: Create directories for ssl certificates
+      ansible.builtin.file:
+        path: /etc/nginx/ssl
+        state: directory
+        mode: 0600
+
+    - name: Copy TLS key
+      ansible.builtin.copy:
+        src: files/nginx.key
+        dest: "{{ key_file }}"
+        owner: root
+        mode: 0400
+      notify: Restart nginx
+
+    - name: Copy TLS certificate
+      ansible.builtin.copy:
+        src: files/nginx.crt
+        dest: "{{ cert_file }}"
+        mode: 0400
+      notify: Restart nginx
+
+    - name: Copy nginx config file
+      ansible.builtin.template:
+        src: templates/nginx.conf.j2
+        dest: "{{ conf_file }}"
+        mode: 0400
+      notify: Restart nginx
+
+    - name: Enable configuration
+      ansible.builtin.file:
+        src: "{{ conf_file }}"
+        dest: /etc/nginx/sites-enabled/default
+        state: link
+      notify: Restart nginx
+
+    - name: Copy index.html
+      ansible.builtin.template:
+        src: templates/index.html.j2
+        dest: /usr/share/nginx/html/index.html
+        mode: 0644
+
+  handlers:
+    - name: Restart nginx
+      ansible.builtin.service:
+        name: nginx
+        state: restarted
