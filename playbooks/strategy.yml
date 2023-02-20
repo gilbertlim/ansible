@@ -1,0 +1,17 @@
+- hosts: webservers
+  connection: local
+  tasks:
+    - name: First tasks
+      ansible.builtin.shell: whoami
+      register: result
+      notify: linear_strategy
+
+    - name: Flush the handlers
+      ansible.builtin.meta: flush_handlers
+
+    - debug: var=result
+
+  handlers:
+    - name: handler
+      ansible.builtin.shell: echo handler executed        
+      listen: linear_strategy
