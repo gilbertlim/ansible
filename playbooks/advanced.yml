@@ -1,0 +1,61 @@
+- name: Advanced ansible
+  hosts: server1
+  become: true
+  tasks:
+    # File
+    - name: Copy test.txt
+      ansible.builtin.template:
+        src: test.j2
+        dest: /home/vagrant/test.txt
+        mode: 0400
+
+    - name: Read test.txt
+      ansible.builtin.shell: "cat /home/vagrant/test.txt"
+      register: test
+
+    - debug: var=test
+
+    - name: Make test2.txt using test.txt
+      ansible.builtin.shell: echo "{{ lookup('file', '/Users/mz01-lsjin/test.txt') }}2" > test2.txt
+
+    - name: Read test2.txt
+      ansible.builtin.shell: "cat /home/vagrant/test2.txt"
+      register: test2
+
+    - debug: var=test2
+
+    # Pipe
+    - name: Get SHA of most recent commit
+      ansible.builtin.debug:
+        msg: "{{ lookup('pipe', 'git rev-parse HEAD') }}"
+
+    - name: Get the current shell
+      ansible.builtin.debug:
+        msg: "{{ lookup('env', 'SHELL') }}"
+
+    - name: Install api packages
+      ansible.builtin.apt:
+        pkg: "{{ item }}"
+        update_cache: true
+        cache_valid_time: 3600
+      with_items:
+        - python3-psycopg2
+        - postgresql
+
+    - name: Create deploy postgres user
+      community.postgresql.postgresql_user:
+        name: deploy
+        password: "{{ lookup('password', 'deploy-password.txt') }}"
+      become: true
+      become_user: postgres
+
+    - name: Output message from template
+      ansible.builtin.debug:
+        msg: "{{ lookup('template', 'message.j2') }}"
+
+    - name: Get csv file
+      ansible.builtin.debug:
+        msg: "{{ lookup('csvfile', 'Lorin' + ' file=users.csv delimiter=, col=1') }}"
+
+    - name: look up TXT record
+      debug: msg="{{ lookup('dnstxt', 'ansiblebook.com') }}"
