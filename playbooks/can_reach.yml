@@ -1,0 +1,17 @@
+- name: Custom module
+  hosts: server1
+  gather_facts: false
+  tasks:
+    # - name: Run my custom script
+    #   ansible.builtin.script: scripts/can_reach.sh www.example.com 80 1
+    #   register: result
+
+    - name: Run can_reach custom module
+      can_reach:
+        host: www.example.com
+        port: 80
+        timeout: 1
+
+    - name: Show result
+      ansible.builtin.debug:
+        var: result
