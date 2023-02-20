@@ -11,6 +11,7 @@
         host: www.example.com
         port: 80
         timeout: 1
+      register: result
 
     - name: Show result
       ansible.builtin.debug:
