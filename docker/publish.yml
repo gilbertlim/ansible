@@ -1,23 +1,21 @@
-- name: publish images to docker hub
+- name: Publish images to docker hub
   hosts: localhost
-  gather_facts: False
+  gather_facts: false
   vars_prompt:
     - name: username
       prompt: Enter Docker Registry username
-      private: no
-    - name: email
-      prompt: Enter Docker Registry email
-      private: no
+      private: false
     - name: password
       prompt: Enter Docker Registry password
-      private: yes
+      private: true
   tasks:
-    - name: authenticate with repository
-      docker_login:
+    - name: Authenticate with repository
+      community.docker.docker_login:
         username: "{{ username }}"
-        email: "{{ email }}"
         password: "{{ password }}"
-    - name: push image up
-      docker_image:
+    - name: Push image up
+      community.docker.docker_image:
         name: ansiblebook/nginx-ghost
-        push: yes
+        source: pull
+        repository: 1672gilbert/nginx-ghost
+        push: true
