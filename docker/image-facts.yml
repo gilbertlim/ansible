@@ -1,28 +1,31 @@
 ---
-- name: get exposed ports and volumes
+- name: Get exposed ports and volumes
   hosts: localhost
-  gather_facts: False
+  gather_facts: false
   vars:
     image: ghost
   tasks:
-    - name: get image info
-      docker_image_facts: name=ghost
+    - name: Pull image
+      community.docker.docker_image:
+        name: ghost
+        source: pull
+    - name: Get image info
+      community.docker.docker_image_info:
+        name: ghost
       register: ghost
-    - name: extract ports
-      set_fact:
+    - name: Extract ports
+      ansible.builtin.set_fact:
         ports: "{{ ghost.images[0].Config.ExposedPorts.keys() }}"
-    - name: we expect only one port to be exposed
-      assert:
+    - name: We expect only one port to be exposed
+      ansible.builtin.assert:
         that: "ports|length == 1"
-    - name: output exposed port
-      debug:
+    - name: Output exposed port
+      ansible.builtin.debug:
         msg: "Exposed port: {{ ports[0] }}"
-    - name: extract volumes
-      set_fact:
+    - name: Extract volumes
+      ansible.builtin.set_fact:
         volumes: "{{ ghost.images[0].Config.Volumes.keys() }}"
-    - name: output volumes
-      debug:
+    - name: Output volumes
+      ansible.builtin.debug:
         msg: "Volume: {{ item }}"
       with_items: "{{ volumes }}"
-
-
