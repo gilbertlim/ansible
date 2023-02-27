@@ -10,7 +10,6 @@ services:
     links:
       - ghost
   ghost:
-    image: ghost
+    image: ghost:4.48.9-alpine
     volumes:
-      - ${PWD}/ghostdata:/var/lib/ghost
-
+      - ${PWD}/ghostdata:/var/lib/ghost/content

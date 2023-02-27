@@ -115,7 +115,7 @@ config = {
             connection: {
                 host     : '0.0.0.0',
                 user     : 'root',
-                password : '',
+                password : 'admin',
                 database : 'ghost_testing',
                 charset  : 'utf8'
             }
