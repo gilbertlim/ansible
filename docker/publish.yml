@@ -6,8 +6,8 @@
       prompt: Enter Docker Registry username
       private: false
     - name: password
-      prompt: Enter Docker Registry password
-      private: false
+      prompt: Enter Docker Registry password=
+      private: true
   tasks:
     - name: Authenticate with repository
       community.docker.docker_login:
@@ -17,4 +17,5 @@
       community.docker.docker_image:
         name: ansiblebook/nginx-ghost
         source: pull
+        repository: 1672gilbert/nginx-ghost
         push: true
