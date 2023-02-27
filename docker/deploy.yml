@@ -1,43 +1,58 @@
-- name: install Docker
+- name: Install docker
   hosts: dockerhosts
-  become: True
+  become: true
   tasks:
-    - name: install packages
-      apt: name={{ item }} update_cache=yes cache_valid_time=3600
+    - name: Install packages
+      ansible.builtin.apt:
+        name: "{{ item }}"
+        update_cache: true
+        cache_valid_time: 3600
       with_items:
         - apt-transport-https
         - ca-certificates
-        - linux-image-extra-{{ ansible_kernel }}
-        - linux-image-extra-virtual
+        - curl
         - software-properties-common
-        - python-pip
-    - name: add Docker's GPG key
-      apt_key:
-          id: 58118E89F3A912897C070ADBF76221572C52609D
-          url: https://yum.dockerproject.org/gpg
-    - name: add Docker stable repository
-      apt_repository:
-        repo: deb https://apt.dockerproject.org/repo/ ubuntu-{{ansible_distribution_release}} main
-        update_cache: yes
-    - name: install Docker
-      apt: name=docker-engine
-    - name: install docker-py
-      pip: name=docker-py
+        - python3-pip
+        - virtualenv
+        - python3-setuptools
+    - name: Add signing key
+      ansible.builtin.apt_key:
+        url: "https://download.docker.com/linux/{{ ansible_distribution | lower }}/gpg"
+        state: present
+    - name: Add repository into sources list
+      ansible.builtin.apt_repository:
+        repo: "deb [arch={{ ansible_architecture }}] https://download.docker.com/linux/{{ ansible_distribution | lower }} {{ ansible_distribution_release }} stable"
+        state: present
+        filename: docker
+    - name: Install Docker
+      ansible.builtin.apt:
+        name:
+          - docker
+          - docker.io
+          - docker-compose
+          - docker-registry
+        state: latest
+        update_cache: true
+        cache_valid_time: 3600
+    - name: Install docker-py
+      ansible.builtin.pip:
+        name: docker-py
 
 
-- name: deploy postgres
+- name: Deploy postgres
   hosts: postgres
-  become: True
-  gather_facts: False
+  become: true
+  gather_facts: false
   vars:
     data_dir: /data/pgdata
   tasks:
-    - name: create data dir with correct ownership
-      file:
+    - name: Create data dir with correct ownership
+      ansible.builtin.file:
         path: "{{ data_dir }}"
         state: directory
-    - name: start postgres container
-      docker_container:
+        mode: "0644"
+    - name: Start postgres container
+      community.docker.docker_container:
         name: postgres_ghost
         image: postgres:9.6
         ports:
@@ -49,10 +64,11 @@
           POSTGRES_PASSWORD: "{{ database_password }}"
           POSTGRES_DB: "{{ database_name }}"
 
-- name: deploy ghost
+
+- name: Deploy ghost
   hosts: ghost
-  become: True
-  gather_facts: False
+  become: true
+  gather_facts: false
   vars:
     url: "https://{{ ansible_host }}"
     database_host: "{{ groups['postgres'][0] }}"
@@ -60,16 +76,21 @@
     certs_dir: /data/certs
     net_name: ghostnet
   tasks:
-    - name: create network
-      docker_network: "name={{ net_name }}"
-    - name: create ghostdata directory
-      file:
+    - name: Create network
+      community.docker.docker_network:
+        name: "{{ net_name }}"
+    - name: Create ghostdata directory
+      ansible.builtin.file:
         path: "{{ data_dir }}"
         state: directory
-    - name: generate the config file
-      template: src=templates/config.js.j2 dest={{ data_dir }}/config.js
-    - name: start ghost container
-      docker_container:
+        mode: "0644"
+    - name: Generate the config file
+      ansible.builtin.template:
+        src: templates/config.js.j2
+        dest: "{{ data_dir }}/config.js"
+        mode: "0644"
+    - name: Start ghost container
+      community.docker.docker_container:
         name: ghost
         image: ghost
         command: npm start --production
@@ -77,21 +98,22 @@
           - "{{ data_dir }}:/var/lib/ghost"
         networks:
           - name: "{{ net_name }}"
-    - name: create certs directory
-      file:
+    - name: Create certs directory
+      ansible.builtin.file:
         path: "{{ certs_dir }}"
         state: directory
-    - name: generate tls certs
-      command: >
+        mode: "0644"
+    - name: Generate tls certs
+      ansible.builtin.command: >
         openssl req -new -x509 -nodes
         -out "{{ certs_dir }}/nginx.crt" -keyout "{{ certs_dir }}/nginx.key"
-        -subj "/CN={{ ansible_host}}" -days 3650
+        -subj "/CN={{ ansible_host }}" -days 3650
         creates=certs/nginx.crt
-    - name: start nginx container
-      docker_container:
+    - name: Start nginx container
+      community.docker.docker_container:
         name: nginx_ghost
         image: ansiblebook/nginx-ghost
-        pull: yes
+        pull: true
         networks:
           - name: "{{ net_name }}"
         ports:

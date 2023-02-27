@@ -9,7 +9,7 @@ postgres
 ghost
 
 [postgres]
-192.168.33.9 ansible_ssh_private_key_file=.vagrant/machines/postgres/virtualbox/private_key
+192.168.33.9 ansible_ssh_private_key_file=.vagrant/machines/postgres/vmware_desktop/private_key
 
 [ghost]
-192.168.33.10 ansible_ssh_private_key_file=.vagrant/machines/ghost/virtualbox/private_key
+192.168.33.10 ansible_ssh_private_key_file=.vagrant/machines/ghost/vmware_desktop/private_key
