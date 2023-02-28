@@ -1,0 +1,22 @@
+- name: Debug ansible
+  hosts: localhost
+  tasks:
+    - name: Test script
+      ansible.builtin.command: whoami
+      register: result
+      changed_when: true
+
+    - name: Assert that eth1 interface exists
+      ansible.builtin.assert:
+        that:
+          - result is defined
+          - "'mz01-lsjin' in result.stdout_lines"
+
+    - name: Stat home
+      ansible.builtin.stat:
+        path: /Users/mz01-lsjin
+      register: st
+
+    - name: Assert that home is a directory
+      ansible.builtin.assert:
+        that: st.stat.isdir
