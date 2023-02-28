@@ -1,0 +1,12 @@
+version: '3.8'
+services:
+  control_machine:
+    image: "ubuntu:latest"
+    ports: 
+      - "7001:80"
+    command: sleep 3600
+  host:
+    image: "ubuntu:latest"
+    ports: 
+      - "8001:80"
+    command: sleep 3600
