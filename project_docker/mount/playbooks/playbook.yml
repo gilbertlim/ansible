@@ -1,0 +1,9 @@
+- name: Test
+  hosts: server
+  tasks:
+    - name: Test
+      ansible.builtin.command: echo "Test"
+      changed_when: true
+      register: result
+
+    - debug: var=result

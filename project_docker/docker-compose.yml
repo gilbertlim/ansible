@@ -4,9 +4,48 @@ services:
     image: "ubuntu:latest"
     ports: 
       - "7001:80"
-    command: sleep 3600
-  host:
+    stdin_open: true
+    tty: true
+    volumes:
+      - ~/study/ansible/project_docker/mount/initialize:/home/initialize
+      - ~/study/ansible/project_docker/mount/playbooks:/home/playbooks
+    command:
+      - /bin/sh
+      - -c
+      - |
+        chmod +x /home/initialize/setup.sh
+        /home/initialize/setup.sh
+        apt install -y ansible
+        /bin/bash
+ 
+  host1:
     image: "ubuntu:latest"
     ports: 
       - "8001:80"
-    command: sleep 3600
+    stdin_open: true
+    tty: true
+    volumes:
+      - ~/study/ansible/project_docker/mount/initialize:/home/initialize
+    command:
+      - /bin/sh
+      - -c
+      - |
+        chmod +x /home/initialize/setup.sh
+        /home/initialize/setup.sh
+        /bin/bash
+  
+  host2:
+    image: "ubuntu:latest"
+    ports: 
+      - "8002:80"
+    stdin_open: true
+    tty: true
+    volumes:
+      - ~/study/ansible/project_docker/mount/initialize:/home/initialize
+    command:
+      - /bin/sh
+      - -c
+      - |
+        chmod +x /home/initialize/setup.sh
+        /home/initialize/setup.sh
+        /bin/bash
