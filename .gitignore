@@ -3,3 +3,6 @@
 certs
 *.crt
 *.key
+
+*.pub
+id_rsa
