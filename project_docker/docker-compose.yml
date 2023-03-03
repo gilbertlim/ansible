@@ -1,51 +1,79 @@
 version: '3.8'
 services:
   control_machine:
+    container_name: control_machine
     image: "ubuntu:latest"
-    ports: 
-      - "7001:80"
+    networks:
+      default:
+        ipv4_address: 172.21.0.2
+    depends_on:
+      host1:
+        condition: service_healthy
+      host2:
+        condition: service_healthy
+    restart: always
     stdin_open: true
     tty: true
     volumes:
-      - ~/study/ansible/project_docker/mount/initialize:/home/initialize
-      - ~/study/ansible/project_docker/mount/playbooks:/home/playbooks
+      - ~/study/ansible/project_docker/mount/initialize:/root/initialize
+      - ~/study/ansible/project_docker/mount/playbooks:/root/playbooks
     command:
       - /bin/sh
       - -c
       - |
-        chmod +x /home/initialize/setup.sh
-        /home/initialize/setup.sh
-        apt install -y ansible
+        chmod +x /root/initialize/setup.sh
+        /root/initialize/setup.sh
+        apt install -y ansible sshpass
+        ssh-keygen -t rsa -f /root/.ssh/id_rsa -N ''
         /bin/bash
- 
+
   host1:
+    container_name: host1
     image: "ubuntu:latest"
-    ports: 
-      - "8001:80"
+    networks:
+      default:
+        ipv4_address: 172.21.0.3
+    healthcheck:
+      test: service ssh status | grep 'sshd is running'
+      interval: 60s
+      retries: 10
     stdin_open: true
     tty: true
     volumes:
-      - ~/study/ansible/project_docker/mount/initialize:/home/initialize
+      - ~/study/ansible/project_docker/mount/initialize:/root/initialize
     command:
       - /bin/sh
       - -c
       - |
-        chmod +x /home/initialize/setup.sh
-        /home/initialize/setup.sh
+        chmod +x /root/initialize/setup.sh
+        /root/initialize/setup.sh
         /bin/bash
   
   host2:
+    container_name: host2
     image: "ubuntu:latest"
-    ports: 
-      - "8002:80"
+    networks:
+      default:
+        ipv4_address: 172.21.0.4
+    healthcheck:
+      test: service ssh status | grep 'sshd is running'
+      interval: 5s
     stdin_open: true
     tty: true
     volumes:
-      - ~/study/ansible/project_docker/mount/initialize:/home/initialize
+      - ~/study/ansible/project_docker/mount/initialize:/root/initialize
     command:
       - /bin/sh
       - -c
       - |
-        chmod +x /home/initialize/setup.sh
-        /home/initialize/setup.sh
+        chmod +x /root/initialize/setup.sh
+        /root/initialize/setup.sh
         /bin/bash
+
+networks:
+  default:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+      - subnet: 172.21.0.0/16          
