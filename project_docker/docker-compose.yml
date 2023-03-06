@@ -6,12 +6,10 @@ services:
     networks:
       default:
         ipv4_address: 172.21.0.2
-    depends_on:
-      host1:
-        condition: service_healthy
-      host2:
-        condition: service_healthy
-    restart: always
+    healthcheck:
+      test: apt list | grep 'ansible-core'
+      interval: 60s
+      retries: 10
     stdin_open: true
     tty: true
     volumes:
@@ -23,8 +21,8 @@ services:
       - |
         chmod +x /root/initialize/setup.sh
         /root/initialize/setup.sh
-        apt install -y ansible sshpass
         ssh-keygen -t rsa -f /root/.ssh/id_rsa -N ''
+        apt install -y ansible
         /bin/bash
 
   host1:
